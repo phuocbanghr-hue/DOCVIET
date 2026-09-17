@@ -437,23 +437,69 @@
   @media (max-width: 900px){ #flashGrid{ grid-template-columns:repeat(2,1fr) !important; } }
   @media (max-width: 480px){ .flash-head{ flex-direction:column; align-items:flex-start; gap:8px; } }
 
-  /* ---------- Vouchers ---------- */
-  .vouchers{ padding:32px 0 0; }
-  .voucher-row{ display:flex; gap:16px; overflow-x:auto; }
+  /* ---------- Vouchers / Săn mã giờ vàng ---------- */
+  .vouchers{ padding:40px 0 4px; background:linear-gradient(180deg, #fbf3e8, #f5f5f5 70%); }
+  .voucher-head{
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+    margin-bottom:18px;
+  }
+  .voucher-head-title{
+    font-family:'Baloo 2',sans-serif; font-weight:700; font-size:21px; color:var(--navy);
+    display:flex; align-items:center; gap:8px;
+  }
+  .voucher-head-title i{ color:var(--terracotta-dark); }
+  .voucher-head-sub{ font-size:12.5px; color:var(--navy-soft); margin-top:2px; }
+  .voucher-clock{
+    font-family:'Baloo 2',sans-serif; font-weight:700; font-size:13.5px;
+    background:var(--navy); color:var(--white); border-radius:999px; padding:8px 16px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .voucher-clock .vc-time{ background:rgba(255,255,255,0.16); border-radius:999px; padding:2px 10px; letter-spacing:1px; }
+  .voucher-row{ display:flex; gap:18px; overflow-x:auto; padding-bottom:6px; }
   .voucher-card{
-    flex:1; min-width:220px;
-    display:flex; align-items:center; gap:12px;
-    background:var(--white); border:1.5px dashed var(--cobalt);
-    border-radius:16px; padding:14px 16px;
+    position:relative; flex:1; min-width:250px;
+    display:flex; align-items:stretch; gap:0;
+    background:var(--white);
+    border-radius:16px; padding:0;
+    box-shadow:0 8px 20px rgba(75,56,50,0.10);
+    overflow:hidden;
+    border:1px solid var(--line);
   }
-  .voucher-icon{ font-size:26px; }
-  .voucher-info{ flex:1; display:flex; flex-direction:column; font-size:12.5px; color:var(--navy-soft); }
-  .voucher-info strong{ font-size:15px; color:var(--navy); font-family:'Baloo 2',sans-serif; }
-  .voucher-copy{
-    background:var(--cobalt); color:var(--white); border:none; border-radius:999px;
-    padding:7px 14px; font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap;
+  .voucher-stub{
+    width:74px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(160deg, var(--terracotta), var(--terracotta-dark));
+    color:var(--white); font-size:24px; position:relative;
   }
-  .voucher-copy:hover{ background:var(--navy); }
+  .voucher-stub::after{
+    content:''; position:absolute; right:-9px; top:50%; transform:translateY(-50%);
+    width:18px; height:18px; background:var(--white); border-radius:50%;
+  }
+  .voucher-body{ flex:1; display:flex; flex-direction:column; gap:6px; padding:14px 16px 14px 20px; font-size:12.5px; color:var(--navy-soft); }
+  .voucher-body strong{ font-size:16px; color:var(--navy); font-family:'Baloo 2',sans-serif; }
+  .voucher-code-tag{
+    align-self:flex-start; font-family:monospace; font-weight:700; letter-spacing:1px;
+    background:#fbf3e8; color:var(--terracotta-dark); border:1px dashed var(--terracotta);
+    border-radius:6px; padding:2px 8px; font-size:12px;
+  }
+  .voucher-stock-wrap{ margin-top:2px; }
+  .voucher-stock-bar{ height:6px; border-radius:999px; background:var(--line); overflow:hidden; }
+  .voucher-stock-fill{ height:100%; background:linear-gradient(90deg, var(--terracotta), var(--sun)); border-radius:999px; transition:width .3s ease; }
+  .voucher-stock-text{ font-size:11px; margin-top:3px; }
+  .voucher-action{
+    background:var(--terracotta-dark); color:var(--white); border:none; border-radius:999px;
+    padding:9px 16px; font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap;
+    margin-top:auto; align-self:flex-start;
+  }
+  .voucher-action:hover{ background:var(--navy); }
+  .voucher-action[disabled]{ background:#cfcac6; color:#fff; cursor:not-allowed; }
+  .voucher-card.locked .voucher-stub{ background:linear-gradient(160deg,#b7b0a9,#948d86); }
+  .voucher-card.locked .voucher-action{ background:#948d86; }
+  .voucher-card.claimed .voucher-stub{ background:linear-gradient(160deg, var(--jade), #1c7b6d); }
+  .voucher-card.claimed .voucher-action{ background:var(--jade); }
+  .voucher-badge-hot{
+    position:absolute; top:8px; right:10px; background:var(--sun); color:var(--navy);
+    font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:999px;
+  }
   @media (max-width:720px){ .voucher-row{ flex-wrap:wrap; } .voucher-card{ min-width:100%; } }
 
   .strip{
@@ -934,10 +980,10 @@
         <strong>Đèn mặt trăng — 29K</strong>
         <span>Ánh sáng vàng ấm cho góc phòng</span>
       </a>
-      <a href="#products" class="banner-mini banner-voucher">
-        <span class="bm-tag"><i class='fa-solid fa-ticket'></i> ƯU ĐÃI</span>
-        <strong>Freeship nội thành</strong>
-        <span>Nhập mã khi lên đơn</span>
+      <a href="#vouchers" class="banner-mini banner-voucher">
+        <span class="bm-tag"><i class='fa-solid fa-clock'></i> GIỜ VÀNG</span>
+        <strong>Săn mã lúc 0h mỗi đêm</strong>
+        <span>Số lượng có hạn, nhanh tay kẻo hết</span>
       </a>
     </div>
   </div>
@@ -948,7 +994,7 @@
     <a href="#flashsale" class="shortcut-item"><span class="shortcut-icon" style="background:#f3d9e3;"><i class='fa-solid fa-bolt'></i></span>Flash Sale</a>
     <a href="#products" class="shortcut-item"><span class="shortcut-icon" style="background:#dce8f0;"><i class='fa-solid fa-bag-shopping'></i></span>Tất cả sản phẩm</a>
     <a href="#products" class="shortcut-item" id="wishShortcutBtn"><span class="shortcut-icon" style="background:#f6ded6;"><i class='fa-solid fa-heart'></i></span>Yêu thích</a>
-    <a href="#products" class="shortcut-item"><span class="shortcut-icon" style="background:#f6ebc9;"><i class='fa-solid fa-ticket'></i></span>Voucher</a>
+    <a href="#vouchers" class="shortcut-item"><span class="shortcut-icon" style="background:#f6ebc9;"><i class='fa-solid fa-ticket'></i></span>Săn mã 0h</a>
     <a href="#about" class="shortcut-item"><span class="shortcut-icon" style="background:#dcead9;"><i class='fa-solid fa-lightbulb'></i></span>Về chúng tôi</a>
     <a href="#contact" class="shortcut-item"><span class="shortcut-icon" style="background:#e9dff3;"><i class='fa-brands fa-facebook-messenger'></i></span>Liên hệ</a>
   </div>
@@ -987,23 +1033,20 @@
   </div>
 </section>
 
-<section class="vouchers">
-  <div class="wrap voucher-row">
-    <div class="voucher-card" data-code="BANGDEPTRAI">
-      <div class="voucher-icon"><i class='fa-solid fa-ticket'></i></div>
-      <div class="voucher-info"><strong>Giảm 30.000đ</strong><span>Áp dụng mọi đơn hàng</span></div>
-      <button class="voucher-copy">Lưu mã</button>
+<section class="vouchers" id="vouchers">
+  <div class="wrap">
+    <div class="voucher-head">
+      <div>
+        <div class="voucher-head-title"><i class='fa-solid fa-clock'></i> Săn mã giảm giá giờ vàng</div>
+        <div class="voucher-head-sub">Mã mở đúng <strong>0 giờ đêm</strong> mỗi ngày, số lượng giới hạn — ai nhanh tay người đó có mã.</div>
+      </div>
+      <div class="voucher-clock" id="voucherClock">
+        <i class="fa-solid fa-hourglass-half"></i>
+        <span id="voucherClockLabel">Mở mã sau</span>
+        <span class="vc-time" id="voucherClockTime">--:--:--</span>
+      </div>
     </div>
-    <div class="voucher-card" data-code="FREESHIPHD">
-      <div class="voucher-icon"><i class='fa-solid fa-truck'></i></div>
-      <div class="voucher-info"><strong>Giảm 15.000đ</strong><span>Hỗ trợ phí ship nội thành</span></div>
-      <button class="voucher-copy">Lưu mã</button>
-    </div>
-    <div class="voucher-card" data-code="HOMIENEW">
-      <div class="voucher-icon"><i class='fa-solid fa-gift'></i></div>
-      <div class="voucher-info"><strong>Giảm 20.000đ</strong><span>Khách đặt lần đầu</span></div>
-      <button class="voucher-copy">Lưu mã</button>
-    </div>
+    <div class="voucher-row" id="voucherRow"></div>
   </div>
 </section>
 
@@ -1803,15 +1846,144 @@ function startCountdown(){
   setInterval(tick, 1000);
 }
 
-// Voucher copy
-document.querySelectorAll('.voucher-copy').forEach(btn=>{
-  btn.onclick = async () => {
-    const code = btn.closest('.voucher-card').dataset.code;
-    try{ await navigator.clipboard.writeText(code); }catch(_){}
-    btn.textContent = 'Đã lưu ✓';
-    setTimeout(()=> btn.textContent = 'Lưu mã', 1800);
-  };
+// ====== Săn mã giảm giá giờ vàng (mở lúc 0h, số lượng giới hạn) ======
+const VOUCHERS = [
+  { code:'HOMIE0H', icon:'fa-solid fa-moon', label:'Giảm 50.000đ', desc:'Đơn từ 300.000đ — chỉ dành cho giờ vàng', total:20 },
+  { code:'BANGDEPTRAI', icon:'fa-solid fa-ticket', label:'Giảm 30.000đ', desc:'Áp dụng mọi đơn hàng', total:50 },
+  { code:'FREESHIPHD', icon:'fa-solid fa-truck', label:'Freeship nội thành', desc:'Hỗ trợ phí ship Đà Nẵng', total:40 },
+  { code:'HOMIENEW', icon:'fa-solid fa-gift', label:'Giảm 20.000đ', desc:'Dành cho khách đặt lần đầu', total:60 },
+];
+const VOUCHER_HUNT_HOUR = 0;      // Khung giờ cứng: mở đúng 0 giờ đêm
+const VOUCHER_HUNT_MINUTES = 30;  // Cửa sổ săn mã kéo dài 30 phút sau khi mở
+
+function todayKeyVN(d){
+  return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+}
+function getVoucherState(){
+  const key = 'homie_voucher_state';
+  const today = todayKeyVN(new Date());
+  let state = {};
+  try{ state = JSON.parse(localStorage.getItem(key)) || {}; }catch(_){ state = {}; }
+  if(state.date !== today){
+    // Reset kho mã mỗi ngày mới
+    state = { date: today, remaining: {}, claimed: {} };
+    VOUCHERS.forEach(v => { state.remaining[v.code] = v.total; });
+    localStorage.setItem(key, JSON.stringify(state));
+  }
+  return state;
+}
+function saveVoucherState(state){ localStorage.setItem('homie_voucher_state', JSON.stringify(state)); }
+
+function getHuntWindow(now){
+  const start = new Date(now); start.setHours(VOUCHER_HUNT_HOUR,0,0,0);
+  if(now < start){ /* chưa tới 0h hôm nay thì start chính là hôm nay */ }
+  else if(now - start > VOUCHER_HUNT_MINUTES*60000){
+    // Đã qua cửa sổ hôm nay -> mốc mở tiếp theo là 0h ngày mai
+    start.setDate(start.getDate()+1);
+  }
+  const end = new Date(start.getTime() + VOUCHER_HUNT_MINUTES*60000);
+  return { start, end };
+}
+
+function renderVouchers(){
+  const row = document.getElementById('voucherRow');
+  const state = getVoucherState();
+  row.innerHTML = VOUCHERS.map(v => {
+    const remaining = state.remaining[v.code] ?? v.total;
+    const claimedByMe = !!state.claimed[v.code];
+    const pct = Math.max(0, Math.min(100, Math.round((remaining/v.total)*100)));
+    return `
+      <div class="voucher-card" data-code="${v.code}">
+        ${remaining <= Math.ceil(v.total*0.2) && remaining>0 ? '<span class="voucher-badge-hot">SẮP HẾT</span>' : ''}
+        <div class="voucher-stub"><i class="${v.icon}"></i></div>
+        <div class="voucher-body">
+          <strong>${v.label}</strong>
+          <span>${v.desc}</span>
+          <span class="voucher-code-tag">${v.code}</span>
+          <div class="voucher-stock-wrap">
+            <div class="voucher-stock-bar"><div class="voucher-stock-fill" style="width:${pct}%"></div></div>
+            <div class="voucher-stock-text">Còn ${remaining}/${v.total} mã</div>
+          </div>
+          <button class="voucher-action" data-code="${v.code}">${claimedByMe ? 'Đã săn được ✓' : 'Săn mã'}</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+  updateVoucherAvailability();
+}
+
+function updateVoucherAvailability(){
+  const now = new Date();
+  const { start, end } = getHuntWindow(now);
+  const isOpen = now >= start && now < end;
+  const state = getVoucherState();
+
+  document.querySelectorAll('#voucherRow .voucher-card').forEach(card => {
+    const code = card.dataset.code;
+    const btn = card.querySelector('.voucher-action');
+    const remaining = state.remaining[code] ?? 0;
+    const claimedByMe = !!state.claimed[code];
+    card.classList.toggle('locked', !isOpen && !claimedByMe);
+    card.classList.toggle('claimed', claimedByMe);
+    if(claimedByMe){
+      btn.disabled = true; btn.textContent = 'Đã săn được ✓';
+    } else if(!isOpen){
+      btn.disabled = true; btn.textContent = 'Chưa tới giờ';
+    } else if(remaining <= 0){
+      btn.disabled = true; btn.textContent = 'Đã hết mã';
+    } else {
+      btn.disabled = false; btn.textContent = 'Săn mã';
+    }
+  });
+
+  // Đồng hồ đầu mục
+  const clockLabel = document.getElementById('voucherClockLabel');
+  const clockTime = document.getElementById('voucherClockTime');
+  if(isOpen){
+    clockLabel.textContent = 'Đang mở, đóng sau';
+    clockTime.textContent = fmtHMS(end - now);
+  } else {
+    clockLabel.textContent = 'Mở mã sau';
+    clockTime.textContent = fmtHMS(start - now);
+  }
+}
+
+function fmtHMS(ms){
+  ms = Math.max(0, ms);
+  const h = String(Math.floor(ms/3600000)).padStart(2,'0');
+  const m = String(Math.floor((ms%3600000)/60000)).padStart(2,'0');
+  const s = String(Math.floor((ms%60000)/1000)).padStart(2,'0');
+  return `${h}:${m}:${s}`;
+}
+
+document.getElementById('voucherRow').addEventListener('click', async (e) => {
+  const btn = e.target.closest('.voucher-action');
+  if(!btn || btn.disabled) return;
+  const code = btn.dataset.code;
+  const now = new Date();
+  const { start, end } = getHuntWindow(now);
+  const isOpen = now >= start && now < end;
+  if(!isOpen) return;
+
+  const state = getVoucherState();
+  const remaining = state.remaining[code] ?? 0;
+  if(remaining <= 0 || state.claimed[code]) return;
+
+  state.remaining[code] = remaining - 1;
+  state.claimed[code] = true;
+  saveVoucherState(state);
+
+  try{ await navigator.clipboard.writeText(code); }catch(_){}
+  renderVouchers();
 });
+
+renderVouchers();
+setInterval(() => {
+  // Nếu vừa vượt mốc mở/đóng cửa sổ thì render lại toàn bộ trạng thái
+  updateVoucherAvailability();
+}, 1000);
+// Reset lại danh sách khi bước sang khung giờ mới (kiểm tra mỗi phút)
+setInterval(renderVouchers, 60000);
 
 const FAQ_ITEMS = [
   { q: "Thời gian giao hàng mất bao lâu?", a: "Nội thành Đà Nẵng: giao trong 24 giờ. Các tỉnh/thành khác: 2–4 ngày làm việc qua đơn vị vận chuyển. Homie Decor sẽ nhắn xác nhận thời gian cụ thể qua Messenger sau khi chốt đơn." },
