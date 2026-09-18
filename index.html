@@ -1556,12 +1556,34 @@ function buildOrderText(orderData){
     (orderData.note ? `Ghi chú: ${orderData.note}` : '');
 }
 
+// Nhận diện trình duyệt "trong app" (Facebook, Messenger, Zalo, Instagram, Line...).
+// Các webview này rất hay CHẶN window.open() hoặc mở link m.me ra trang lỗi
+// "Nội dung này hiện không có sẵn" — đây chính là nguyên nhân phổ biến nhất khiến
+// việc chuyển qua Messenger bị lỗi/không chạy. Với các webview này ta điều hướng
+// thẳng (location.href) thay vì mở tab mới.
+function isInAppBrowser(){
+  const ua = navigator.userAgent || navigator.vendor || '';
+  return /FBAN|FBAV|FB_IAB|Instagram|Line\/|Zalo|MicroMessenger/i.test(ua);
+}
+
+// Tạo sẵn link Messenger có ĐIỀN SẴN nội dung đơn hàng (giống cách wa.me?text= của Zalo/WhatsApp).
+// Trước đây web chỉ copy nội dung vào clipboard rồi mở m.me trống — nếu trình duyệt/app
+// chặn Clipboard API (rất hay gặp trên webview trong app, hoặc khi trang chưa chạy https),
+// khách sẽ mở Messenger nhưng không có gì để dán => tưởng là "lỗi".
+// Nay nội dung được nhét thẳng vào URL nên luôn hiện sẵn trong khung chat, không phụ thuộc clipboard nữa.
+function buildMessengerUrl(orderData){
+  return `https://m.me/${FANPAGE_ID}?text=${encodeURIComponent(buildOrderText(orderData))}`;
+}
+
 // Bước 1: khách bấm "Tôi đã chuyển khoản" — ghi đơn vào Sheet, KHÔNG tự xưng là đã xác thực thật
 // (vì web tĩnh không kiểm tra được sao kê ngân hàng), chỉ ghi là khách tự khai đã chuyển.
 async function confirmTransfer(orderData, btn){
   const msg = document.getElementById('ofMsg');
-  // Mở tab trống NGAY LÚC BẤM (trước mọi await) để trình duyệt không chặn popup
-  const messengerWin = window.open('', '_blank');
+  const inApp = isInAppBrowser();
+  // Mở tab trống NGAY LÚC BẤM (trước mọi await) để trình duyệt không chặn popup.
+  // Nếu đang ở trong webview Facebook/Zalo... thì KHÔNG mở tab mới (hay bị chặn/lỗi),
+  // ta sẽ điều hướng thẳng trang hiện tại ở bước sau.
+  const messengerWin = inApp ? null : window.open('', '_blank');
   const payload = {
     ...orderData,
     timestamp: new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }),
@@ -1578,7 +1600,7 @@ async function confirmTransfer(orderData, btn){
         body: JSON.stringify(payload)
       });
     }
-    await goToMessenger(orderData, messengerWin);
+    await goToMessenger(orderData, messengerWin, inApp);
   }catch(err){
     msg.classList.add('error');
     msg.textContent = 'Có lỗi khi ghi nhận, vui lòng thử lại.';
@@ -1588,10 +1610,15 @@ async function confirmTransfer(orderData, btn){
 }
 
 // Bước 2 (tuỳ chọn): mở Messenger để được tư vấn/xác nhận nhanh hơn
-async function goToMessenger(orderData, messengerWin){
+async function goToMessenger(orderData, messengerWin, inApp){
+  // Vẫn thử copy vào clipboard như một lớp dự phòng (không throw nếu thất bại)
   try{ await navigator.clipboard.writeText(buildOrderText(orderData)); }catch(_){}
-  const url = `https://m.me/${FANPAGE_ID}`;
-  if(messengerWin && !messengerWin.closed){
+  const url = buildMessengerUrl(orderData);
+  if(inApp){
+    // Trong webview Facebook/Zalo/Instagram... window.open hay bị chặn hoặc lỗi,
+    // điều hướng thẳng trang hiện tại để chắc chắn chuyển được.
+    location.href = url;
+  } else if(messengerWin && !messengerWin.closed){
     messengerWin.location.href = url;
   } else {
     // Trình duyệt đã chặn cửa sổ mới — mở lại bằng link thường để chắc chắn hoạt động
@@ -1604,23 +1631,42 @@ async function goToMessenger(orderData, messengerWin){
 }
 
 function showSuccess(payload){
+  const orderText = buildOrderText(payload);
   checkoutCard.innerHTML = `
     <button class="icon-btn close-x" id="closeSuccessX">✕</button>
     <div class="success-view">
       <div class="check"><i class='fa-solid fa-circle-check'></i></div>
       <h3>Đã lưu đơn, tiếp tục trên Messenger!</h3>
-      <p>Mình đã mở khung chat Fanpage và copy sẵn thông tin đơn <strong>${payload.orderId}</strong> — bạn chỉ cần dán (Ctrl+V / giữ để dán) vào khung chat để Homie Decor xác nhận và hướng dẫn thanh toán.</p>
+      <p>Mình đã mở khung chat Fanpage với nội dung đơn <strong>${payload.orderId}</strong> điền sẵn — bạn chỉ cần bấm Gửi. Nếu Messenger không tự mở hoặc chưa hiện sẵn nội dung, hãy bấm nút bên dưới hoặc tự dán (Ctrl+V / giữ để dán) đoạn đã copy vào khung chat.</p>
       <div class="order-summary" style="text-align:left;">
         <div class="row"><span>Mã đơn hàng</span><span><strong>${payload.orderId}</strong></span></div>
         <div class="row"><span>Trạng thái</span><span><strong>${payload.paymentStatus}</strong></span></div>
       </div>
+      <textarea readonly id="orderTextFallback" style="width:100%; min-height:90px; margin:10px 0; padding:10px; border-radius:10px; border:1px solid var(--line); font-family:inherit; font-size:13px; resize:vertical;">${orderText}</textarea>
       <button class="btn btn-primary" id="reopenMsgBtn">Mở lại Messenger</button>
+      <button class="btn btn-ghost" id="copyOrderTextBtn" style="width:100%; margin-top:10px;">Sao chép nội dung đơn hàng</button>
       <button class="btn btn-ghost" id="successCloseBtn" style="width:100%; margin-top:10px;">Tiếp tục xem sản phẩm</button>
     </div>
   `;
   document.getElementById('closeSuccessX').onclick = closeCheckout;
   document.getElementById('successCloseBtn').onclick = closeCheckout;
-  document.getElementById('reopenMsgBtn').onclick = () => window.open(`https://m.me/${FANPAGE_ID}`, '_blank');
+  document.getElementById('reopenMsgBtn').onclick = () => {
+    const url = buildMessengerUrl(payload);
+    if(isInAppBrowser()){ location.href = url; } else { window.open(url, '_blank'); }
+  };
+  document.getElementById('copyOrderTextBtn').onclick = async () => {
+    const ta = document.getElementById('orderTextFallback');
+    try{
+      await navigator.clipboard.writeText(orderText);
+    }catch(_){
+      ta.focus(); ta.select();
+      try{ document.execCommand('copy'); }catch(_){}
+    }
+    const b = document.getElementById('copyOrderTextBtn');
+    const old = b.textContent;
+    b.textContent = 'Đã sao chép!';
+    setTimeout(()=>{ b.textContent = old; }, 1500);
+  };
 }
 
 // Lead form (contact section) — đẩy về cùng Google Sheet dạng "Khách quan tâm"
